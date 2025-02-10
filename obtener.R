@@ -1,6 +1,9 @@
 library(tidyverse)
+
+# funciones para scraping
 source("funciones.R")
 
+# obtener lista de variables
 variables <- sinim_obtener_variables()
 
 # ver todas las variables disponibles
@@ -21,52 +24,14 @@ municipios_id <- municipios |>
 # resumen previo
 message(paste("obteniendo", length(variables_id), "variables para", length(municipios_id), "municipios"))
 
-# realizar solicitud
+# realizar solicitud y obtener datos
 datos_sinim <- sinim_obtener_datos(
-  years            = c(2020:2023),
+  years            = c(2019:2023),
   var_codes        = variables_id,
   municipios       = municipios_id,
   parallel_workers = 8
 )
+# se demora aprox 1.5 horas
 
-datos_sinim
-
-# revisar variables
-datos_sinim |> 
-  distinct(variable, area, subarea)
-
-# revisiar municipios
-datos_sinim |> 
-  distinct(municipio, municipio_name)
-
-datos_sinim |> distinct(unit)  
-
-# agregar códigos únicos territoriales
-datos_sinim_2 <- datos_sinim |> 
-  left_join(municipios |> select(id_municipio, cut_comuna = idLegal),
-            by = join_by(municipio == id_municipio))
-
-# limpieza
-datos_sinim_3 <- datos_sinim_2 |> 
-  # sacar columnas irrelevantes
-  select(-class_type, -col_info) |> 
-  # reordenar columnas de municipio
-  select(-municipio) |> 
-  rename(municipio = municipio_name) |> 
-  relocate(municipio, cut_comuna, contains("year"), .before = var_code) |> 
-  # limpiar variables
-  mutate(unit = str_trim(unit)) |> 
-  # convertir cifras a numérico
-  mutate(value = parse_number(value, locale = locale(decimal_mark = ",", grouping_mark = ".")))
-
-# renombrar
-datos_sinim_4 <- datos_sinim_3 |> 
-  rename(año_id = sinim_year_code,
-         año = user_year,
-         variable_id = var_code,
-         variable_desc = description,
-         unidad = unit,
-         valor = value)
-  
-# guardar ----
-datos_sinim_4 |> arrow::write_parquet("datos/sinim_genero_2020_2023.parquet")
+# guardar datos crudos
+datos_sinim |> readr::write_rds("datos/datos_originales/sinim_scraping_2019-2023.rds", compress = "gz")

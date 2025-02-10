@@ -2,8 +2,7 @@ library(dplyr)
 library(ggplot2)
 
 # cargar datos ----
-sinim <- arrow::read_parquet("datos/sinim_genero_2020_2023.parquet")
-cut_comunas <- readr::read_csv2("datos/cut_comuna.csv")
+sinim <- arrow::read_parquet("datos/sinim_genero_2019_2023.parquet")
 
 sinim |> 
   distinct(variable, variable_id, area, subarea) |> 
@@ -12,19 +11,17 @@ sinim |>
 sinim |> 
   filter(año == 2023) |> 
   filter(variable_id == 1231) |> 
-  filter(municipio == "LA FLORIDA")
+  filter(nombre_comuna == "La Florida")
   
 
 # filtrar ----
 # filtrar datos de una región y una variable
 datos_region <- sinim |> 
-  rename(codigo_comuna = cut_comuna) |> 
-  left_join(cut_comunas, 
-            by = join_by(codigo_comuna)) |> 
-  filter(codigo_region == "01") |>
+  filter(codigo_region == "02") |>
   filter(variable_id == 1231) |> 
   filter(!is.na(valor)) |> 
   mutate(tipo = if_else(valor < 50, "Bajo 50%", "Sobre 50%"))
+
 
 # gráfico ----
 datos_region |> 
