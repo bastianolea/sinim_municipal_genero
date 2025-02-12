@@ -1,3 +1,4 @@
+library(dplyr)
 library(stringr)
 library(tidyr)
 library(ggplot2)
@@ -60,7 +61,7 @@ sinim_b |>
   calcular_cambio()
 
 
-datos_sinim |> 
+sinim_b |> 
   filter(variable == "Nº de mujeres no profesionales a contrata (sin título profesional)")
 
 
