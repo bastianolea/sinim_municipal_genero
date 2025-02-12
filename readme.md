@@ -5,7 +5,7 @@ Obtención y procesamiento de datos en lote desde el [Sistema de Información Mu
 Se obtienen los datos del área de Género almacenados en Sinim.
 
 ## Datos
-Datos disponibles en formato `csv` y `parquet` en la carpeta `datos/`, desde 2019 a 2023.
+Datos disponibles en formato `csv`, `xlsx` y `parquet` en la carpeta `datos/`, desde 2019 a 2023. Encuentra los datos [en este enlace](https://github.com/bastianolea/sinim_datos_genero/raw/main/datos/sinim_genero_2019-2023.parquet).
 
 ## Variables
 

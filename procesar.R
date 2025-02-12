@@ -82,5 +82,6 @@ datos_sinim_5 <- datos_sinim_4 |>
                               .default = "Otros"))
 
 # guardar ----
-datos_sinim_5 |> arrow::write_parquet("datos/sinim_genero_2019_2023.parquet")
-datos_sinim_5 |> readr::write_csv("datos/sinim_genero_2019_2023.csv")
+datos_sinim_5 |> arrow::write_parquet("datos/sinim_genero_2019-2023.parquet")
+datos_sinim_5 |> readr::write_csv("datos/sinim_genero_2019-2023.csv")
+datos_sinim_5 |> writexl::write_xlsx("datos/sinim_genero_2019-2023.xlsx")

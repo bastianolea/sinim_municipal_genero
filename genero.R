@@ -1,7 +1,7 @@
 library(stringr)
 library(tidyr)
 
-sinim <- arrow::read_parquet("datos/sinim_genero_2020_2023.parquet")
+sinim <- arrow::read_parquet("datos/sinim_genero_2019_2023.parquet")
 
 sinim
 
@@ -12,17 +12,16 @@ sinim |>
 sinim
 
 sinim_b <- sinim |> 
-select(variable, municipio, año, genero, valor) |> 
-arrange(municipio, desc(año), variable)
-
+select(variable, nombre_comuna, año, genero, valor) |> 
+arrange(nombre_comuna, desc(año), variable)
 
 calcular_cambio <- function(data) {
   data |> 
-    group_by(municipio, año) |> 
+    group_by(nombre_comuna, año) |> 
     mutate(porcentaje = valor/sum(valor)) |> 
     filter(genero == "Mujeres") |> 
     drop_na(porcentaje) |> 
-    group_by(municipio) |> 
+    group_by(nombre_comuna) |> 
     mutate(cambio = (porcentaje/lead(porcentaje))-1)
 }
 
@@ -51,3 +50,7 @@ sinim_b |>
   filter(variable %in% c("Nº de mujeres no profesionales a contrata (sin título profesional)",
                          "Nº de hombres no profesionales a contrata (sin título profesional)")) |> 
   calcular_cambio()
+
+
+datos_sinim |> 
+  filter(variable == "Nº de mujeres no profesionales a contrata (sin título profesional)")
