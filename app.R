@@ -28,7 +28,7 @@ ui <- page_fluid(
   tags$head(tags$style('.card{overflow: visible !important;}'),
             tags$style('.card-body{overflow: visible !important;}')),
   
-  h1 ("Título"),
+  h1("Sinim"),
   
   card(
     selectInput("region",
@@ -36,12 +36,19 @@ ui <- page_fluid(
                 choices = regiones)
   ),
   
+  # parte 1 ----
   card(min_height = "600px",
        
        card_body(
-         selectInput("v_porcentaje",
+         layout_columns(
+           selectInput("v_porcentaje",
                      "Variables",
                      choices = variables_porcentaje),
+           sliderInput("comunas_n",
+                       "Comunas",
+                       min = 2, max = 15,
+                       value = 7)
+         ),
          
          layout_columns(
            plotOutput("g_porcentajes"),
@@ -56,7 +63,7 @@ ui <- page_fluid(
        )
   ),
   
-  
+  # parte 2 ----
   card(min_height = "600px",
        selectInput("v_variacion",
                    "Variables",
@@ -98,7 +105,7 @@ server <- function(input, output, session) {
   comunas_top <- reactive({
     datos_region() |> 
       summarize(n = sum(valor), .by = nombre_comuna) |> 
-      slice_max(n, n = 7) |> pull(nombre_comuna)
+      slice_max(n, n = input$comunas_n) |> pull(nombre_comuna)
   })
   
   observe(

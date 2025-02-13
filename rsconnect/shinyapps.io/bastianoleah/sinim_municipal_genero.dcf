@@ -1,0 +1,13 @@
+name: sinim_municipal_genero
+title: sinim_municipal_genero
+username: bastianoleah
+account: bastianoleah
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13993528
+bundleId: 9795817
+url: https://bastianoleah.shinyapps.io/sinim_municipal_genero/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: datos/datos_originales/sinim_scraping_2019-2023.rds|datos/sinim_genero_2019-2023.csv|datos/sinim_genero_2019-2023.xlsx|explorar.R|genero.R|obtener.R|otros/corregir_excels.R|otros/procesar_sinim.R|otros/tabla_variables.R|procesar.R|readme.md

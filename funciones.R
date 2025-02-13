@@ -429,7 +429,7 @@ grafico_porcentajes <- function(data) {
     # scale_x_continuous(expand = expansion(c(0, 0.25))) +
     scale_y_continuous(expand = expansion(c(0.2, 0.2)),
                        labels = ~paste0(" ", .x, "%")) +
-    labs(y = datos_region |> pull(variable) |> unique(), x = NULL) +
+    labs(y = data |> pull(variable) |> unique(), x = NULL) +
     guides(color = guide_none()) +
     theme(plot.title = element_text(face = "bold"),
           panel.grid.minor = element_blank()) +
@@ -475,7 +475,7 @@ grafico_tendencias <- function(data) {
                        labels = ~paste0(" ", .x, "%"),
                        # limits = c(0, NA)
     ) +
-    labs(y = datos_region |> pull(variable) |> unique(), x = NULL) +
+    labs(y = data |> pull(variable) |> unique(), x = NULL) +
     guides(color = guide_none(),
            fill = guide_none()) +
     theme(plot.title = element_text(face = "bold"),
