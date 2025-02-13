@@ -77,7 +77,9 @@ sinim_b |>
 sinim |> 
   distinct(variable, genero, variable_desc, area, subarea) |> 
   # slice(1) |> pull(variable_desc)
-  print(n=Inf)
+  print(n=Inf) #|> 
+  # gt() |> 
+  # gt::gtsave("otros/lista_variables.html")
 
 
 # filtrar región ----
