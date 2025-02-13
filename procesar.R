@@ -60,9 +60,11 @@ datos_sinim_4 <- datos_sinim_3 |>
 # crear variables
 datos_sinim_5 <- datos_sinim_4 |> 
   ungroup() |> 
-  mutate(genero = case_when(str_detect(variable, "total|Total") ~ "Total",
-                            str_detect(variable, "mujer|Mujer") ~ "Mujeres",
+  mutate(genero = case_when(str_detect(variable, "mujer|Mujer") ~ "Mujeres",
                             str_detect(variable, "hombre|Hombre") ~ "Hombres")) |> 
+  
+  mutate(genero = case_when(str_detect(variable, "total|Total") & !str_detect(variable, "Porcentaje.*sobre") ~ "Total",
+                            .default = genero)) |> 
   select(-unidad) |> 
   mutate(medida = case_when(str_detect(variable, "porcentaje|Porcentaje") ~ "%",
                             str_detect(variable, "Número|Nº|número") ~ "N",
@@ -79,7 +81,17 @@ datos_sinim_5 <- datos_sinim_4 |>
                           str_detect(variable, "comunitario") ~ "Honorarios",
                           str_detect(variable, "funcionari") ~ "Funcionarios/as",)) |> 
   mutate(programa = case_when(str_detect(variable, "comunitario") ~ "Comunitario",
-                              .default = "Otros"))
+                              .default = "Otros")) |> 
+  # versión neutra de la variable, para poder seleccionarla y desagregar por la variable género
+  mutate(variable_neutra = str_replace(variable, "(M|m)ujeres|(H|h)ombres|(M|m)ujer|(H|h)ombre", "personas"))
+
+# datos_sinim_5 |> distinct(variable, genero, variable_desc, area, subarea) |> 
+#   print(n=Inf)
+
+# datos_sinim_5 |> 
+#   mutate(variable_neutra = str_replace(variable, "mujeres|hombres|mujer|hombre", "personas")) |> 
+#   distinct(variable, genero, variable_desc, area, subarea)
+
 
 # guardar ----
 datos_sinim_5 |> arrow::write_parquet("datos/sinim_genero_2019-2023.parquet")

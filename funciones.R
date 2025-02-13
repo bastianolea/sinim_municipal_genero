@@ -338,3 +338,147 @@ sinim_obtener_datos <- function(
   
   final_df
 }
+
+
+
+calcular_cambio <- function(data) {
+  data |> 
+    arrange(nombre_comuna, desc(año)) |> 
+    group_by(nombre_comuna, año) |> 
+    mutate(porcentaje = valor/sum(valor)) |> 
+    filter(genero == "Mujeres") |> 
+    drop_na(porcentaje) |> 
+    group_by(nombre_comuna) |> 
+    # mutate(cambio = (porcentaje/lead(porcentaje))-1) |>
+    mutate(cambio = case_when(medida == "%" ~ (valor/lead(valor))-1,
+                              .default = (porcentaje/lead(porcentaje))-1)) |> 
+    # que primera medición sea cero
+    mutate(cambio = if_else(año == min(año) & is.na(cambio), 0, cambio)) |> 
+    # categórica
+    mutate(tipo = if_else(cambio > 0, "positivo", "negativo")) |> 
+    ungroup()
+}
+
+
+grafico_variacion <- function(data, orientacion = "vertical") {
+  plot <- data |> 
+    mutate(max = max(cambio)*0.02) |> 
+    ggplot() +
+    aes(x = año, y = cambio,
+        group = nombre_comuna,
+        fill = tipo, color = tipo) +
+    geom_col(color = NA, width = 0.6) +
+    geom_hline(yintercept = 0, linewidth = 0.4) +
+    geom_text(#data = ~filter(.x, cambio != 0),
+              aes(label = percent(cambio, 0.1),
+                  vjust = ifelse(cambio > 0, 0, 1),
+                  y = case_when(cambio == 0 ~ 0.02,
+                                cambio > 0 ~ cambio+0.005, 
+                                cambio < 0 ~ cambio-0.005)),
+              size = 3, color = "black") +
+    scale_y_continuous(#limits = c(-0.1, 0.1), 
+                       # oob = scales::oob_squish,
+                       labels = label_percent()) +
+    scale_fill_manual(values = c("negativo" = "red3", "positivo" = "grey60")) +
+    guides(fill = guide_none()) +
+    theme_classic() +
+    theme(strip.background = element_blank(), strip.text = element_text(face = "bold"),
+          panel.grid.major.y = element_line(), axis.ticks.x = element_blank(),
+          axis.title = element_blank())
+  
+  if (orientacion == "vertical") {
+  plot <- plot +
+    facet_wrap(~nombre_comuna, ncol = 1, axes = "all") +
+    theme(panel.spacing.y = unit(8, "mm"))
+  } else if (orientacion == "horizontal") {
+    plot <- plot +
+      facet_wrap(~nombre_comuna, nrow = 1, axes = "all") +
+      theme(panel.spacing.x = unit(8, "mm"))
+  }
+  return(plot)
+}
+
+
+
+grafico_porcentajes <- function(data) {
+  data |> 
+    group_by(nombre_comuna) |> 
+    mutate(nombre_comuna_max = ifelse(año == max(año), nombre_comuna, NA)) |> 
+    ungroup() |> 
+    ggplot() + 
+    aes(x = año, y = valor, 
+        color = nombre_comuna,
+        group = nombre_comuna) +
+    annotate(geom = "rect", 
+             xmin = 2020-0.1, xmax = 2023+0, 
+             ymin = 50, ymax = -Inf, 
+             fill = "red3", alpha = 0.06) +
+    geom_hline(yintercept = 50, linetype = "dashed", 
+               color = "red3", alpha = .5, linewidth = 1) +
+    geom_line(linewidth = 1.2, alpha = 0.8) + 
+    geom_point(size = 3, alpha = 0.8) +
+    ggrepel::geom_text_repel(aes(label = stringr::str_wrap(nombre_comuna_max, 12)),
+                             nudge_x = 0.1, min.segment.length = 1,
+                             direction = "y", fontface = "bold", xlim = c(0, Inf),
+                             size = 3.1, hjust = 0, lineheight = 0.8) +
+    theme_minimal() +
+    coord_cartesian(clip = "off") +
+    labs(title = data |> pull(variable) |> unique(),
+         subtitle = data |> pull(nombre_region) |> unique(),
+         caption = "Fuente: datos.sinim.gov.cl") +
+    # scale_x_continuous(expand = expansion(c(0, 0.25))) +
+    scale_y_continuous(expand = expansion(c(0.2, 0.2)),
+                       labels = ~paste0(" ", .x, "%")) +
+    labs(y = datos_region |> pull(variable) |> unique(), x = NULL) +
+    guides(color = guide_none()) +
+    theme(plot.title = element_text(face = "bold"),
+          panel.grid.minor = element_blank()) +
+    theme(plot.margin = unit(c(4, 20, 2, 2), "mm"))
+}
+
+
+
+grafico_tendencias <- function(data) {
+  data |> 
+    group_by(nombre_comuna) |> 
+    mutate(nombre_comuna_max = ifelse(año == max(año), nombre_comuna, NA)) |> 
+    ungroup() |> 
+    ggplot() + 
+    aes(x = año, y = valor, 
+        # color = tipo,
+        color = nombre_comuna,
+        fill = nombre_comuna,
+        group = nombre_comuna) +
+    # cuadro rojo
+    # annotate(geom = "rect", xmin = min(datos_region$año)-0.1, xmax = max(datos_region$año)+0, 
+    #          ymin = 50, ymax = -Inf, fill = "red3", alpha = 0.06) +
+    # línea al 50%
+    geom_hline(yintercept = 50, linetype = "dashed", 
+               color = "red3", alpha = .5, linewidth = 0.4) +
+    stat_smooth(method = "lm", se = F, linewidth = 1.2, fullrange = T, linetype = "dotted", alpha = 0.8) + # línea punteada
+    stat_smooth(method = "lm", se = F, linewidth = 1.2, alpha = 0.8) + # línea sólida
+    # stat_smooth(method = "lm", se = T, fullrange = T, geom = "ribbon", fill = NA, linetype = "dashed", alpha = 1) + # márgenes con borde
+    stat_smooth(method = "lm", se = T, geom = "ribbon", linewidth = 0, fullrange = F, alpha = 0.09) + # márgenes sin borde
+    # texto
+    ggrepel::geom_text_repel(aes(label = stringr::str_wrap(nombre_comuna_max, 12),
+                                 x = 2023.1), 
+                             nudge_x = 0.1, min.segment.length = 1,
+                             direction = "y", fontface = "bold", xlim = c(0, Inf),
+                             size = 3.1, hjust = 0, lineheight = 0.8) +
+    theme_minimal() +
+    coord_cartesian(clip = "off") +
+    labs(title = data |> pull(variable) |> unique(),
+         subtitle = data |> pull(nombre_region) |> unique(),
+         caption = "Fuente: datos.sinim.gov.cl") +
+    scale_x_continuous(expand = expansion(c(0, 0))) +
+    scale_y_continuous(expand = expansion(c(0.2, 0.2)),
+                       labels = ~paste0(" ", .x, "%"),
+                       # limits = c(0, NA)
+    ) +
+    labs(y = datos_region |> pull(variable) |> unique(), x = NULL) +
+    guides(color = guide_none(),
+           fill = guide_none()) +
+    theme(plot.title = element_text(face = "bold"),
+          panel.grid.minor = element_blank()) +
+    theme(plot.margin = unit(c(4, 20, 2, 2), "mm"))
+}
