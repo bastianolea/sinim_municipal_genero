@@ -3,7 +3,8 @@ library(dplyr)
 source("funciones.R")
 
 # cargar datos crudos
-datos_sinim <- readr::read_rds("datos/datos_originales/sinim_scraping_2019-2023.rds")
+# datos_sinim <- readr::read_rds("datos/datos_originales/sinim_scraping_2019-2023.rds")
+datos_sinim <- readr::read_rds("datos/datos_originales/sinim_scraping_rrhh_2021-2023.rds")
 
 # revisar variables
 datos_sinim |> 
