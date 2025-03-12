@@ -61,10 +61,10 @@ datos_sinim_4 <- datos_sinim_3 |>
 # crear variables
 datos_sinim_5 <- datos_sinim_4 |> 
   ungroup() |> 
-  mutate(genero = case_when(str_detect(variable, "mujer|Mujer") ~ "Mujeres",
-                            str_detect(variable, "hombre|Hombre") ~ "Hombres")) |> 
+  mutate(genero = case_when(str_detect(variable, "(m|M)ujer|(F|f)emenina") ~ "Mujeres",
+                            str_detect(variable, "(h|H)ombre|(m|M)asculina") ~ "Hombres")) |> 
   
-  mutate(genero = case_when(str_detect(variable, "total|Total") & !str_detect(variable, "Porcentaje.*sobre") ~ "Total",
+  mutate(genero = case_when(str_detect(variable, "total|Total") & !str_detect(variable, "Participación|Porcentaje.*sobre") ~ "Total",
                             .default = genero)) |> 
   select(-unidad) |> 
   mutate(medida = case_when(str_detect(variable, "porcentaje|Porcentaje") ~ "%",
@@ -84,10 +84,11 @@ datos_sinim_5 <- datos_sinim_4 |>
   mutate(programa = case_when(str_detect(variable, "comunitario") ~ "Comunitario",
                               .default = "Otros")) |> 
   # versión neutra de la variable, para poder seleccionarla y desagregar por la variable género
-  mutate(variable_neutra = str_replace(variable, "(M|m)ujeres|(H|h)ombres|(M|m)ujer|(H|h)ombre", "personas"))
+  mutate(variable_neutra = str_replace_all(variable, "(M|m)ujeres|(H|h)ombres|(M|m)ujer|(H|h)ombre", "personas"),
+         variable_neutra = str_replace_all(variable_neutra, "(F|f)emenina |(m|M)asculina ", ""))
 
-# datos_sinim_5 |> distinct(variable, genero, variable_desc, area, subarea) |> 
-#   print(n=Inf)
+datos_sinim_5 |> distinct(variable, variable_neutra, genero) |>
+  print(n=Inf)
 
 # datos_sinim_5 |> 
 #   mutate(variable_neutra = str_replace(variable, "mujeres|hombres|mujer|hombre", "personas")) |> 
@@ -98,3 +99,5 @@ datos_sinim_5 <- datos_sinim_4 |>
 datos_sinim_5 |> arrow::write_parquet("datos/sinim_genero_2019-2023.parquet")
 datos_sinim_5 |> readr::write_csv("datos/sinim_genero_2019-2023.csv")
 datos_sinim_5 |> writexl::write_xlsx("datos/sinim_genero_2019-2023.xlsx")
+
+sinim <- datos_sinim_5
