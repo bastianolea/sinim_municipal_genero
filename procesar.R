@@ -42,11 +42,8 @@ datos_sinim_3 <- datos_sinim_2 |>
   # limpiar variables
   mutate(unit = str_trim(unit)) |> 
   # convertir cifras a numérico
-  mutate(value = parse_number(value, locale = locale(decimal_mark = ",", grouping_mark = ".")))
-
-# datos_sinim_3 |> 
-#   filter(is.na(value2) & !is.na(value)) |> 
-#   distinct(value)
+  mutate(value = parse_number(value, locale = locale(decimal_mark = ",", grouping_mark = "."))) |> 
+  mutate(var_code = as.numeric(var_code))
 
 
 # renombrar
@@ -85,7 +82,8 @@ datos_sinim_5 <- datos_sinim_4 |>
                               .default = "Otros")) |> 
   # versión neutra de la variable, para poder seleccionarla y desagregar por la variable género
   mutate(variable_neutra = str_replace_all(variable, "(M|m)ujeres|(H|h)ombres|(M|m)ujer|(H|h)ombre", "personas"),
-         variable_neutra = str_replace_all(variable_neutra, "(F|f)emenina |(m|M)asculina ", ""))
+         variable_neutra = str_replace_all(variable_neutra, "(F|f)emenina |(m|M)asculina ", ""),
+         variable_neutra = str_squish(variable_neutra) |> str_trim())
 
 datos_sinim_5 |> distinct(variable, variable_neutra, genero) |>
   print(n=Inf)
@@ -101,3 +99,4 @@ datos_sinim_5 |> readr::write_csv("datos/sinim_genero_2019-2023.csv")
 datos_sinim_5 |> writexl::write_xlsx("datos/sinim_genero_2019-2023.xlsx")
 
 sinim <- datos_sinim_5
+
